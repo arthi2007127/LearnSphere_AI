@@ -28,7 +28,7 @@ from config import Config
 from models import (
     db, User, QuizAttempt, InterviewChallengeCompletion,
     InterviewPracticeSession, StudyAssistantMessage,
-    PlacementPlanCompletion,
+    PlacementPlanCompletion, LearningActivity,
 )
 import subprocess
 import sys
@@ -103,28 +103,24 @@ APTITUDE_GUIDES = {
 app = Flask(__name__)
 
 
-def update_english_streak(user):
+def record_learning_activity(user, category):
+    """Record a completed learning action and update the learner's daily streak."""
     today = date.today()
     last_practice = user.english_last_practice_date
-
-    print("DEBUG - User:", user.id)
-    print("DEBUG - Today:", today)
-    print("DEBUG - Last practice:", last_practice)
-    print("DEBUG - Old streak:", user.english_practice_streak)
-
-    if last_practice == today:
-        print("DEBUG - Already practised today")
-        return
-
-    if last_practice == today - timedelta(days=1):
-        user.english_practice_streak += 1
-    else:
-        user.english_practice_streak = 1
-
-    user.english_last_practice_date = today
+    existing = LearningActivity.query.filter_by(
+        user_id=user.id, category=category, activity_date=today
+    ).first()
+    if not existing:
+        db.session.add(LearningActivity(
+            user_id=user.id, category=category, activity_date=today
+        ))
+    if last_practice != today:
+        user.english_practice_streak = (
+            user.english_practice_streak + 1
+            if last_practice == today - timedelta(days=1) else 1
+        )
+        user.english_last_practice_date = today
     db.session.commit()
-
-    print("DEBUG - New streak:", user.english_practice_streak)
 
 
 app.config.from_object(Config)
@@ -152,7 +148,24 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    done_categories = set()
+    streak = 0
+    if current_user.is_authenticated:
+        done_categories = {
+            item.category for item in LearningActivity.query.filter_by(
+                user_id=current_user.id, activity_date=date.today()
+            ).all()
+        }
+        streak = current_user.english_practice_streak
+    core_categories = {"aptitude", "coding", "interview", "communication"}
+    completed = done_categories & core_categories
+    return render_template(
+        "index.html",
+        today_progress_completed=len(completed),
+        today_progress_percent=round(len(completed) / len(core_categories) * 100),
+        learning_streak=streak,
+        is_authenticated=current_user.is_authenticated,
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -449,6 +462,8 @@ def complete_placement_task(task_key):
             plan_date=today,
             task_key=task_key,
         ))
+        record_learning_activity(current_user, task_key)
+    else:
         db.session.commit()
     flash("Placement plan progress saved.", "success")
     return redirect(url_for("placement_plan"))
@@ -488,7 +503,7 @@ def interview_hub():
                 word_count=len(words),
             )
             db.session.add(practice)
-            db.session.commit()
+            record_learning_activity(current_user, "interview")
             review = {
                 "signals": signals,
                 "word_count": len(words),
@@ -558,6 +573,7 @@ def ai_coach_respond():
             StudyAssistantMessage(user_id=current_user.id, role="assistant", mode="career", content=answer),
         ])
         db.session.commit()
+        record_learning_activity(current_user, "study")
         return jsonify({"answer": answer})
     except ValueError as error:
         db.session.rollback()
@@ -596,6 +612,7 @@ def study_assistant_respond():
             StudyAssistantMessage(user_id=current_user.id, role="assistant", mode=mode, content=answer),
         ])
         db.session.commit()
+        record_learning_activity(current_user, "study")
         return jsonify({"answer": answer, "mode": mode})
     except ValueError as error:
         db.session.rollback()
@@ -636,7 +653,7 @@ def challenge_level(level):
             error_message = "Write at least 20 characters so you can review a complete answer."
         elif level not in completed_levels:
             db.session.add(InterviewChallengeCompletion(user_id=current_user.id, level=level, response=response))
-            db.session.commit()
+            record_learning_activity(current_user, "interview")
             flash(f"Level {level} completed! Your dashboard progress is updated.", "success")
             return redirect(url_for("challenges"))
     return render_template("challenge_level.html", challenge=challenge,
@@ -780,7 +797,7 @@ def save_quiz_result():
         db.session.add(attempt)
         db.session.commit()
 
-        update_english_streak(current_user)
+        record_learning_activity(current_user, "aptitude")
 
         return {
             "message": "Quiz result saved successfully!",
@@ -855,12 +872,12 @@ def run_code():
 @login_required
 def coding_challenge_completed():
     try:
-        update_english_streak(current_user)
+        record_learning_activity(current_user, "coding")
 
         return jsonify({
             "success": True,
             "streak": current_user.english_practice_streak,
-            "message": "Daily streak updated!"
+            "message": "Coding practice saved to your learning streak."
         })
 
     except Exception:
@@ -892,7 +909,7 @@ def english_coach():
 
     try:
         feedback = get_english_feedback(message, mode, level)
-        update_english_streak(current_user)
+        record_learning_activity(current_user, "communication")
         return jsonify({"feedback": feedback})
 
     except ValueError as error:
@@ -928,7 +945,7 @@ def pronunciation_feedback():
         feedback = get_pronunciation_practice_feedback(
             sentence, level
         )
-        update_english_streak(current_user)
+        record_learning_activity(current_user, "communication")
         return jsonify(feedback)
 
     except ValueError as error:
@@ -943,3 +960,4 @@ def pronunciation_feedback():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
