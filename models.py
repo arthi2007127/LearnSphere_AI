@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import date
 
 db = SQLAlchemy()
 
@@ -96,3 +97,21 @@ class PlacementPlanCompletion(db.Model):
     __table_args__ = (
         db.UniqueConstraint("user_id", "plan_date", "task_key", name="uq_user_daily_plan_task"),
     )
+
+
+class LearningActivity(db.Model):
+    """One recorded learning action per category and learner each day."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    category = db.Column(db.String(30), nullable=False)
+    activity_date = db.Column(db.Date, nullable=False, default=date.today, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "user_id", "category", "activity_date",
+            name="uq_user_learning_activity_category_day",
+        ),
+    )
+
