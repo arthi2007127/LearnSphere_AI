@@ -1,4 +1,4 @@
-﻿# LearnSphere AI
+# LearnSphere AI
 
 LearnSphere AI is a Flask learning and placement-preparation platform. It brings aptitude practice, coding challenges, interview preparation, English coaching, AI study assistance, and a weekly placement plan into one learner workspace.
 
@@ -12,6 +12,7 @@ LearnSphere AI is a Flask learning and placement-preparation platform. It brings
 - Placement Plan with saved task completion
 - Account registration, login, and password reset flows
 - Learner progress stored in SQLAlchemy models
+- Daily learning streaks and a live homepage progress card based on completed activities
 
 ## Run locally
 
@@ -41,3 +42,6 @@ See `.env.example` for supported environment variable names. Never commit `.env`
 - `templates/` — Flask/Jinja pages
 - `static/` — stylesheets and frontend assets
 - `LearnSphere_AI_Project_Overview.docx` and `.pdf` — project overview
+
+The homepage progress card counts completed aptitude, coding, interview, and communication practice for the current day. It updates when a result or completed practice is saved; simply opening a page does not increase progress. A learning streak advances once per calendar day with recorded practice.
+
