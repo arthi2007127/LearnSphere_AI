@@ -45,8 +45,8 @@
                 </p>
 
                 <div class="hero-buttons">
-                   <a href="{{ url_for('register') }}" class="primary-button">
-    Start Learning ↗
+                    <a href="{{ url_for('dashboard') if is_authenticated else url_for('register') }}" class="primary-button">
+    {{ 'Open My Dashboard ↗' if is_authenticated else 'Start Learning ↗' }}
 </a>
 
                     <button class="secondary-button"
@@ -82,25 +82,25 @@
 
                 <div class="orb">✧</div>
 
-                <h2>Your potential is limitless.</h2>
-                <p>Every question takes you one step closer to your goal.</p>
+                <h2>{{ 'Your potential is limitless.' if not is_authenticated else ('Every focus area covered!' if today_progress_completed == 4 else ('A great start. Keep going!' if today_progress_completed else 'Your potential is limitless.')) }}</h2>
+                <p>{{ 'Complete real learning activities to build today’s progress.' if is_authenticated else 'Sign in and practise to see your daily progress and streak here.' }}</p>
 
                 <div class="progress-info">
-                    <span>Today's progress</span>
-                    <strong>25%</strong>
+                    <span>Today’s focus areas</span>
+                    <strong>{{ today_progress_percent }}%</strong>
                 </div>
 
                 <div class="progress-track">
-                    <div class="progress-fill"></div>
+                    <div class="progress-fill" style="width: {{ today_progress_percent }}%"></div>
                 </div>
 
                 <div class="mini-stats">
-                    <div>⚡ <strong>+120 XP</strong></div>
-                    <div>🔥 <strong>3-day streak</strong></div>
+                    <div>🎯 <strong>{{ today_progress_completed }}/4 focus areas</strong></div>
+                    <div>🔥 <strong>{{ learning_streak }}-day streak</strong></div>
                 </div>
 
                 <small class="demo-note">
-                    Sample progress — your real progress will be tracked later.
+                    Progress updates when you complete practice and save your work.
                 </small>
             </div>
 
@@ -170,3 +170,4 @@
 
 </body>
 </html>
+
