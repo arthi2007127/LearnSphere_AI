@@ -258,7 +258,7 @@ h1 span,
 
 .progress-fill {
     height: 100%;
-    width: 25%;
+    width: 0%;
     border-radius: 10px;
     background: linear-gradient(90deg, #a78bfa, #f0abfc);
 }
@@ -4776,3 +4776,4 @@ details.quiz-history-panel[open] > .section-heading {
         width: 100%;
     }
 }
+
