@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard | LearnSphere AI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="dashboard-page">
+
+    <nav class="dashboard-nav">
+        <a href="/" class="brand">LearnSphere <span>AI</span></a>
+
+        <div class="nav-actions">
+            <span class="student-name">
+                👤 {{ current_user.name }}
+            </span>
+
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button class="logout-btn" type="submit">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+
+        <section class="welcome-panel">
+            <p class="eyebrow">YOUR LEARNING JOURNEY STARTS HERE</p>
+
+            <h1>
+                Welcome back,
+                <span>{{ current_user.name }}</span>! 👋
+            </h1>
+
+            <p>
+                Learn new skills, practise every day, and get ready
+                for your dream placement.
+            </p>
+
+            <a href="#learning-modules" class="primary-btn">
+                Explore Learning →
+            </a>
+        </section>
+
+        <section class="stats-grid">
+
+        </section>
+
+        <section class="section-heading" id="learning-modules">
+            <div>
+                <p class="eyebrow">LEARN • PRACTISE • IMPROVE</p>
+                <h2>Your Learning Modules</h2>
+                <p>Choose a module and start improving your skills.</p>
+            </div>
+        </section>
+
+        <section class="modules-grid">
+
+            <article class="module-card aptitude-card">
+                <div class="module-icon">🧠</div>
+                <h3>Aptitude Arena</h3>
+                <p>
+                    Practise quantitative aptitude, logical reasoning,
+                    and placement questions.
+                </p>
+                <a href="{{ url_for('aptitude') }}" class="module-link">
+    Start Practising →
+</a>
+            </article>
+
+            <article class="module-card coding-card">
+                <div class="module-icon">💻</div>
+                <h3>Coding Lab</h3>
+                <p>
+                    Learn programming, solve coding problems,
+                    and improve problem-solving skills.
+                </p>
+                <a href="{{ url_for('code_lab') }}" class="module-link">
+    Explore Coding →
+</a>
+            </article>
+
+            <article class="module-card aptitude-card">
+                <div class="module-icon">🧭</div>
+                <h3>Placement Prep Plan</h3>
+                <p>
+                    Follow a focused daily routine across aptitude,
+                    coding, interviews, and communication.
+                </p>
+                <p class="plan-dashboard-progress">{{ placement_tasks_done }} / 4 tasks done today</p>
+                <a href="{{ url_for('placement_plan') }}" class="module-link">View today's plan →</a>
+            </article>
+
+            <article class="module-card interview-card">
+                <div class="module-icon">🎤</div>
+                <h3>Interview Hub</h3>
+                <p>
+                    Prepare for technical interviews, HR rounds,
+                    and common placement questions.
+                </p>
+                <a href="{{ url_for('interview_hub') }}" class="module-link">Prepare Now →</a>
+            </article>
+
+            <article class="module-card voice-card">
+                <div class="module-icon">🧭</div>
+                <h3>Meet Your AI Coach</h3>
+                <p>
+                    Get personalized placement guidance, mock interview
+                    practice, and a clear next step for your goal.
+                </p>
+                <a href="{{ url_for('ai_coach') }}" class="module-link">Meet your coach →</a>
+            </article>
+
+            <article class="module-card game-card">
+                <div class="module-icon">🏆</div>
+                <h3>100-Level Challenge</h3>
+                <p>
+                    Practise interview answers, unlock levels,
+                    and track your progress from the dashboard.
+                </p>
+                <a href="{{ url_for('challenges') }}" class="module-link">Play & Learn →</a>
+            </article>
+
+            <article class="module-card voice-card">
+                <div class="module-icon">🤖</div>
+                <h3>AI Study Assistant</h3>
+                <p>
+                    Get explanations, quizzes, flashcards,
+                    study plans, and notes review.
+                </p>
+                <a href="{{ url_for('study_assistant') }}" class="module-link">Start Studying →</a>
+            </article>
+            <article class="module-card">
+                <div class="module-icon">🗣️</div>
+                <h3>English Coach</h3>
+                <p>
+                   Improve grammar, vocabulary, conversation,
+                    and interview communication with AI.
+               </p>
+               <a href="{{ url_for('english_coach_page') }}"
+                  class="module-link">
+                  Start Learning →
+                </a>
+            </article>
+
+        </section>
+
+        <section class="progress-panel" aria-label="Interview challenge progress">
+            <div>
+                <p class="eyebrow">100-LEVEL CHALLENGE</p>
+                <h2>Your interview practice</h2>
+                <p>Complete levels in order to build your interview confidence.</p>
+            </div>
+            <div class="progress-placeholder">
+                <span>{{ challenge_completions }} of 100 levels complete</span>
+                <strong>{{ challenge_percentage }}%</strong>
+                <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ challenge_percentage }}%;"></div></div>
+                {% if challenge_completions < 100 %}
+                <small>Next up: Level {{ next_challenge_level }}</small><br>
+                <a class="module-link" href="{{ url_for('challenge_level', level=next_challenge_level) }}">Continue challenge →</a>
+                {% else %}<small>All 100 levels complete. Great work!</small>{% endif %}
+                <small style="display:block;margin-top:12px">{{ interview_practice_count }} interview answers saved · <a href="{{ url_for('interview_hub') }}">Open Interview Hub →</a></small>
+            </div>
+        </section>
+
+        <section class="progress-panel">
+            
+<details class="quiz-history-panel">
+   <summary class="history-toggle">
+    <span>📚 View Quiz History</span>
+    <span class="history-arrow">⌄</span>
+</summary>
+
+    {% if attempts %}
+    <div class="quiz-history-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Topic</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td>{{ attempt.topic }}</td>
+                    <td>
+                        {{ attempt.correct_answers }}/{{ attempt.total_questions }}
+                    </td>
+                    <td>{{ attempt.percentage }}%</td>
+                    <td>{{ attempt.created_at.strftime('%d %b %Y') if attempt.created_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-history">
+        <span>🎯</span>
+        <h3>No quizzes completed yet</h3>
+        <p>Complete your first aptitude quiz to see your results here.</p>
+        <a href="{{ url_for('aptitude') }}" class="primary-btn">
+            Start Practising →
+        </a>
+    </div>
+    {% endif %}
+    </details>
+</section>
+
+            <div>
+                <p class="eyebrow">YOUR FUTURE STARTS TODAY</p>
+                <h2>Placement Preparation</h2>
+                <p>
+                    Your progress will appear here as you complete
+                    lessons, practise questions, and take mock tests.
+                </p>
+            </div>
+
+           
+<div class="progress-placeholder">
+    <span>Placement Preparation</span>
+
+    <strong>{{ progress_percentage }}%</strong>
+
+    <div class="progress-bar">
+        <div class="progress-bar-fill"
+             style="width: {{ progress_percentage }}%;">
+        </div>
+    </div>
+
+    <small>
+        {{ completed_questions }} correct answers out of
+        {{ total_questions }} questions attempted.
+    </small>
+</div>
+
+        </section>
+
+        <footer class="dashboard-footer">
+            <p>© 2026 LearnSphere AI · Learn smarter, grow faster.</p>
+        </footer>
+
+    </main>
+</body>
+</html>

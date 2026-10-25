@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Assistant | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="study-shell">
+    <header class="study-header">
+        <a class="study-back" href="{{ url_for('dashboard') }}">← Dashboard</a>
+        <p class="eyebrow">YOUR PERSONAL STUDY PARTNER</p>
+        <h1>AI Study Assistant</h1>
+        <p>Get clear explanations, practise recall, make flashcards, plan a study session, or turn your notes into a quick review.</p>
+    </header>
+
+    <section class="study-workspace">
+        <aside class="study-tools" aria-label="Study tools">
+            <h2>Pick a study mode</h2>
+            <label for="studyMode">How should I help?</label>
+            <select id="studyMode">
+                <option value="tutor">Explain a topic</option>
+                <option value="quiz">Quiz me</option>
+                <option value="flashcards">Make flashcards</option>
+                <option value="plan">Build a study plan</option>
+                <option value="summary">Summarize my notes</option>
+            </select>
+            <label for="studySubject">Subject or course</label>
+            <input id="studySubject" type="text" maxlength="120" placeholder="e.g. Biology, Python, DBMS">
+            <h3>Try one</h3>
+            <div class="study-suggestions">
+                <button type="button" data-prompt="Explain this idea in simple terms and give me an example: ">Explain a concept</button>
+                <button type="button" data-mode="quiz" data-prompt="Start a short quiz on the key ideas in this subject. Ask one question at a time.">Start a quiz</button>
+                <button type="button" data-mode="flashcards" data-prompt="Make five useful flashcards about the most important ideas in this subject.">Create flashcards</button>
+                <button type="button" data-mode="plan" data-prompt="Make me a focused 45-minute study session for this subject. Include breaks and a quick review.">Plan a session</button>
+                <button type="button" data-mode="summary" data-prompt="Turn these notes into a clear summary, key terms, and three self-test questions:\n\n">Review my notes</button>
+            </div>
+            <p class="study-tip">Tip: include your course level and what part feels confusing for a more useful explanation.</p>
+        </aside>
+
+        <section class="study-chat" aria-label="Study conversation">
+            <div class="study-chat-heading"><div><p class="eyebrow">LEARN BY DOING</p><h2>Your study session</h2></div><span class="study-session-badge">Saved to your account</span></div>
+            <div class="study-messages" id="studyMessages" aria-live="polite" aria-relevant="additions text">
+                {% if messages %}
+                    {% for item in messages %}
+                    <article class="study-message {{ 'from-learner' if item.role == 'user' else 'from-assistant' }}">
+                        <div class="study-message-meta">{{ 'You' if item.role == 'user' else 'Study Assistant' }} · {{ item.mode|title }}</div>
+                        <div class="study-message-content">{{ item.content }}</div>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="study-empty" id="studyEmpty"><span aria-hidden="true">✦</span><h3>What are you learning today?</h3><p>Choose a study mode, add a subject, and send your first question.</p></div>
+                {% endif %}
+            </div>
+            <form class="study-composer" id="studyForm">
+                <label class="sr-only" for="studyMessage">Your question or study notes</label>
+                <textarea id="studyMessage" maxlength="6000" rows="3" placeholder="Ask a question, name a topic, or paste notes to review..." required></textarea>
+                <div class="study-compose-footer"><span id="studyStatus" role="status">Your study conversation is saved privately to your account.</span><button id="studySend" type="submit">Send to assistant <span aria-hidden="true">→</span></button></div>
+            </form>
+        </section>
+    </section>
+</main>
+<script>
+(() => {
+    const form = document.getElementById("studyForm");
+    const input = document.getElementById("studyMessage");
+    const messages = document.getElementById("studyMessages");
+    const modeSelect = document.getElementById("studyMode");
+    const subjectInput = document.getElementById("studySubject");
+    const status = document.getElementById("studyStatus");
+    const sendButton = document.getElementById("studySend");
+
+    function addMessage(role, mode, content) {
+        const article = document.createElement("article");
+        article.className = `study-message ${role === "user" ? "from-learner" : "from-assistant"}`;
+        const meta = document.createElement("div");
+        meta.className = "study-message-meta";
+        meta.textContent = `${role === "user" ? "You" : "Study Assistant"} · ${mode}`;
+        const body = document.createElement("div");
+        body.className = "study-message-content";
+        body.textContent = content;
+        article.append(meta, body);
+        messages.appendChild(article);
+        messages.scrollTop = messages.scrollHeight;
+        return article;
+    }
+
+    document.querySelectorAll(".study-suggestions button").forEach((button) => {
+        button.addEventListener("click", () => {
+            if (button.dataset.mode) modeSelect.value = button.dataset.mode;
+            input.value = button.dataset.prompt || "";
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        });
+    });
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+        const mode = modeSelect.value;
+        const modeLabel = modeSelect.options[modeSelect.selectedIndex].text;
+        const subject = subjectInput.value.trim() || "General study";
+        const empty = document.getElementById("studyEmpty");
+        if (empty) empty.remove();
+        addMessage("user", modeLabel, message);
+        input.value = "";
+        input.disabled = true;
+        sendButton.disabled = true;
+        sendButton.textContent = "Thinking...";
+        status.textContent = "Preparing your study response...";
+        const pending = addMessage("assistant", modeLabel, "Thinking through this with you…");
+
+        try {
+            const response = await fetch("{{ url_for('study_assistant_respond') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({mode, subject, message})
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "The Study Assistant could not answer just now.");
+            pending.querySelector(".study-message-content").textContent = data.answer;
+            status.textContent = "Answer saved. Ask a follow-up or choose another study tool.";
+        } catch (error) {
+            pending.remove();
+            status.textContent = error.message;
+            input.value = message;
+        } finally {
+            input.disabled = false;
+            sendButton.disabled = false;
+            sendButton.innerHTML = 'Send to assistant <span aria-hidden="true">→</span>';
+            input.focus();
+        }
+    });
+})();
+</script>
+</body>
+</html>

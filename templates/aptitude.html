@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aptitude Arena | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="aptitude-page">
+<main class="aptitude-shell">
+    <a class="aptitude-back" href="{{ url_for('dashboard') }}">← Back to dashboard</a>
+    <header class="aptitude-hero">
+        <div><p class="eyebrow">PLACEMENT PRACTICE THAT BUILDS SKILL</p><h1>Aptitude Arena</h1><p>Learn the method, practise under realistic conditions, and review every answer so you know what to improve.</p></div>
+        <div class="aptitude-hero-badge" aria-hidden="true"><span>5</span><small>questions<br>per round</small></div>
+    </header>
+
+    <section class="aptitude-layout">
+        <aside class="aptitude-sidebar">
+            <article class="aptitude-panel study-guide-panel">
+                <p class="eyebrow">BEFORE YOU BEGIN</p><h2>Study approach</h2>
+                <p class="guide-tagline">{{ guide.tagline }}</p>
+                <ul class="guide-tips">{% for tip in guide.tips %}<li>{{ tip }}</li>{% endfor %}</ul>
+                <div class="interview-tip"><strong>Interview tip</strong><p>{{ guide.interview_tip }}</p></div>
+                <a class="guide-link" href="{{ url_for('study_assistant') }}">Need a concept explained? Ask the AI Study Assistant →</a>
+            </article>
+            <article class="aptitude-panel skill-panel">
+                <p class="eyebrow">HOW TO GET BETTER</p><h2>Use each attempt</h2>
+                <ol><li>Work it out before selecting an option.</li><li>Read the explanation, even when correct.</li><li>Notice the type of mistake and practise that skill again.</li></ol>
+            </article>
+        </aside>
+
+        <div class="aptitude-main-column">
+            <section class="aptitude-panel generator-panel">
+                <div class="panel-heading"><div><p class="eyebrow">BUILD A PRACTICE ROUND</p><h2>Choose your focus</h2></div><span class="ai-generation-badge">AI question set</span></div>
+                <form id="quizForm" method="POST" action="{{ url_for('aptitude') }}" class="aptitude-form">
+                    <div><label for="topic">Placement topic</label><select name="topic" id="topic" required>{% for item in ["Quantitative Aptitude", "Logical Reasoning", "Python Programming", "Operating Systems", "DBMS", "Computer Networks"] %}<option value="{{ item }}" {% if topic == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+                    <div><label for="difficulty">Difficulty</label><select name="difficulty" id="difficulty" required>{% for level in ["Easy", "Medium", "Hard"] %}<option value="{{ level }}" {% if difficulty == level %}selected{% endif %}>{{ level }}</option>{% endfor %}</select></div>
+                    <label class="timed-toggle"><input type="checkbox" name="timed" {% if timed %}checked{% endif %}><span><strong>Timed practice</strong><small>6 minutes · optional</small></span></label>
+                    <button class="aptitude-primary-button" type="submit">Generate 5 questions <span aria-hidden="true">→</span></button>
+                </form>
+            </section>
+
+            <div id="loadingMessage" class="aptitude-notice loading-notice" hidden><span class="loading-spinner" aria-hidden="true"></span><div><strong>Preparing your practice round</strong><p>Creating five questions for {{ topic }}. This may take a moment.</p></div></div>
+            <div id="networkNotification" class="aptitude-notice error-notice" {% if not error_message %}hidden{% endif %} role="alert"><div><strong>We couldn’t generate this round</strong><p id="networkStatus">{{ error_message or '' }}</p></div><button type="button" id="retryButton" class="aptitude-secondary-button">Try again</button></div>
+
+            {% if questions %}
+            <section class="quiz-progress-panel">
+                <div class="quiz-progress-top"><div><p class="eyebrow">YOUR PRACTICE ROUND</p><h2>{{ topic }}</h2><span class="quiz-difficulty">{{ difficulty }} difficulty</span></div><div class="quiz-round-status"><strong id="questionPosition">0 / {{ questions|length }}</strong><small>answered</small></div></div>
+                {% if timed %}<div class="quiz-timer" id="quizTimer" role="timer" aria-live="off"><span aria-hidden="true">◷</span> <strong id="timerDisplay">06:00</strong><small>time left</small></div>{% endif %}
+                <div class="quiz-progress-track" role="progressbar" aria-label="Quiz completion" aria-valuemin="0" aria-valuemax="{{ questions|length }}" aria-valuenow="0"><span id="quizProgressFill"></span></div>
+            </section>
+
+            <section id="quizResult" class="aptitude-panel quiz-result-panel" hidden>
+                <p class="eyebrow">ROUND COMPLETE</p><h2 id="resultTitle">Your results</h2><div class="result-score-row"><strong id="score">0 / {{ questions|length }}</strong><span id="percentage">0%</span></div><p id="feedback">Answer the questions to see your results.</p><p id="saveStatus" class="save-status" aria-live="polite"></p>
+                <button type="button" class="aptitude-primary-button" id="anotherSetButton">Practise another set →</button>
+            </section>
+
+            {% for q in questions %}
+            <article class="aptitude-panel question-card" data-answer="{{ q.answer }}">
+                <div class="question-meta"><span>QUESTION {{ loop.index }}</span><span>{{ difficulty }}</span></div>
+                <h3>{{ q.question }}</h3>
+                <div class="options">{% for option in q.options %}<button type="button" class="option-button" data-index="{{ loop.index0 }}"><span class="option-letter">{{ ["A", "B", "C", "D"][loop.index0] }}</span><span>{{ option }}</span></button>{% endfor %}</div>
+                <div class="explanation" hidden><strong>Why this is the answer</strong><p>{{ q.explanation }}</p></div>
+            </article>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+    <footer class="aptitude-footer">Progress comes from reviewing your reasoning, not just collecting correct answers.</footer>
+</main>
+<script>
+(() => {
+    const form = document.getElementById("quizForm");
+    const loading = document.getElementById("loadingMessage");
+    const retry = document.getElementById("retryButton");
+    const notification = document.getElementById("networkNotification");
+    if (form) form.addEventListener("submit", () => {
+        if (loading) loading.hidden = false;
+        if (notification) notification.hidden = true;
+    });
+    if (retry && form) retry.addEventListener("click", () => form.requestSubmit());
+
+    const cards = Array.from(document.querySelectorAll(".question-card"));
+    if (!cards.length) return;
+    const topic = {{ topic | tojson }};
+    const scoreDisplay = document.getElementById("score");
+    const percentageDisplay = document.getElementById("percentage");
+    const feedbackDisplay = document.getElementById("feedback");
+    const resultPanel = document.getElementById("quizResult");
+    const saveStatus = document.getElementById("saveStatus");
+    const progressFill = document.getElementById("quizProgressFill");
+    const progressTrack = document.querySelector(".quiz-progress-track");
+    const position = document.getElementById("questionPosition");
+    const total = cards.length;
+    let score = 0;
+    let answered = 0;
+    let saved = false;
+    let timerHandle = null;
+    let timeExpired = false;
+
+    function finishRound(expired = false) {
+        if (answered < total) return;
+        if (timerHandle) window.clearInterval(timerHandle);
+        resultPanel.hidden = false;
+        const percentage = Math.round((score / total) * 100);
+        scoreDisplay.textContent = `${score} / ${total}`;
+        percentageDisplay.textContent = `${percentage}%`;
+        document.getElementById("resultTitle").textContent = expired ? "Time is up — review your answers" : "Your results";
+        feedbackDisplay.textContent = percentage >= 80 ? "Strong work. Review any missed explanations, then try a harder round." : percentage >= 50 ? "Good progress. Read the explanations and focus your next practice on the missed steps." : "Use the worked explanations to learn the method, then try another round.";
+        resultPanel.scrollIntoView({behavior: "smooth", block: "center"});
+        if (!saved) {
+            saved = true;
+            saveStatus.textContent = "Saving your result...";
+            fetch("{{ url_for('save_quiz_result') }}", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({topic, total_questions: total, correct_answers: score})
+            }).then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Could not save your result.");
+                saveStatus.textContent = "Result saved to your learning history.";
+            }).catch(error => { saveStatus.textContent = error.message || "Your result could not be saved."; });
+        }
+    }
+
+    function answerCard(card, selected) {
+        if (card.dataset.answered === "true") return;
+        card.dataset.answered = "true";
+        answered++;
+        const correctAnswer = Number(card.dataset.answer);
+        const buttons = card.querySelectorAll(".option-button");
+        buttons.forEach((button, index) => {
+            button.disabled = true;
+            if (index === correctAnswer) button.classList.add("correct");
+        });
+        if (selected === correctAnswer) score++;
+        else if (selected !== null) buttons[selected].classList.add("incorrect");
+        else card.classList.add("not-attempted");
+        card.querySelector(".explanation").hidden = false;
+        position.textContent = `${answered} / ${total}`;
+        progressFill.style.width = `${(answered / total) * 100}%`;
+        progressTrack.setAttribute("aria-valuenow", answered);
+        if (answered === total) finishRound(timeExpired);
+    }
+
+    cards.forEach(card => card.querySelectorAll(".option-button").forEach(button => {
+        button.addEventListener("click", () => answerCard(card, Number(button.dataset.index)));
+    }));
+
+    const anotherSet = document.getElementById("anotherSetButton");
+    if (anotherSet && form) anotherSet.addEventListener("click", () => { window.scrollTo({top: 0, behavior: "smooth"}); form.requestSubmit(); });
+
+    const timerDisplay = document.getElementById("timerDisplay");
+    if (timerDisplay) {
+        let seconds = 6 * 60;
+        timerHandle = window.setInterval(() => {
+            seconds--;
+            const minutes = Math.floor(seconds / 60);
+            timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+            if (seconds <= 60) timerDisplay.classList.add("timer-warning");
+            if (seconds <= 0) {
+                window.clearInterval(timerHandle);
+                timeExpired = true;
+                cards.filter(card => card.dataset.answered !== "true").forEach(card => answerCard(card, null));
+                finishRound(timeExpired);
+            }
+        }, 1000);
+    }
+    if (cards.length) setTimeout(() => cards[0].scrollIntoView({behavior: "smooth", block: "start"}), 350);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Hub | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="hub-wrap">
+    <a class="hub-back" href="{{ url_for('dashboard') }}">← Dashboard</a>
+    <section class="hub-hero">
+        <p class="eyebrow">PRACTISE WITH PURPOSE</p>
+        <h1>Interview Hub</h1>
+        <p>Choose a prompt, practise your answer, and use the review checklist to make your example clearer. Your saved answers stay in your account.</p>
+        <a class="hub-action" href="{{ url_for('challenges') }}">Open the 100-level path →</a>
+    </section>
+
+    <section class="hub-card" id="practice">
+        <p class="eyebrow">ANSWER PRACTICE</p>
+        <h2>Draft an interview answer</h2>
+        <form class="hub-form" method="get" action="{{ url_for('interview_hub') }}">
+            <label for="topic">Choose a practice topic</label>
+            <select id="topic" name="topic" onchange="this.form.submit()">
+                {% for title, topic_prompt in topics %}
+                <option value="{{ title }}" {% if title == selected_topic %}selected{% endif %}>{{ title }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <div class="hub-prompt"><p class="eyebrow">YOUR PROMPT</p><p>{{ prompt }}</p></div>
+        <form class="hub-form" method="post" action="{{ url_for('interview_hub') }}">
+            <input type="hidden" name="topic" value="{{ selected_topic }}">
+            <label for="response">Your answer</label>
+            <textarea id="response" name="response" required minlength="20" placeholder="Use a real example. Explain what you did and what happened next.">{{ response_draft }}</textarea>
+            {% if error_message %}<p class="hub-error" role="alert">{{ error_message }}</p>{% endif %}
+            <button type="submit">Save and review my answer</button>
+        </form>
+    </section>
+
+    {% if review %}
+    <section class="hub-card" aria-live="polite">
+        <p class="eyebrow">SELF-REVIEW · {{ review.word_count }} WORDS · SAVED</p>
+        <h2>Answer structure checklist</h2>
+        <p>These are writing signals to help you review your draft, not an automated interview score.</p>
+        <div class="review-grid">
+            {% for label, present in review.signals.items() %}
+            <article class="review-item"><strong class="{{ 'signal-met' if present else 'signal-missed' }}">{{ '✓' if present else '○' }} {{ label }}</strong><p>{% if present %}Your answer includes this signal.{% else %}Consider adding this to make your example more concrete.{% endif %}</p></article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="hub-card">
+        <p class="eyebrow">RECENT PRACTICE</p>
+        <h2>Your saved answers</h2>
+        {% if history %}<div class="history-list">
+            {% for item in history %}<article class="history-item"><time>{{ item.created_at.strftime('%d %b %Y, %I:%M %p') if item.created_at else 'Saved' }} · {{ item.word_count }} words</time><h3>{{ item.topic }}</h3><p>{{ item.response[:220] }}{% if item.response|length > 220 %}…{% endif %}</p></article>{% endfor %}
+        </div>{% else %}<p>You haven’t saved an answer yet. Choose a prompt above to begin.</p>{% endif %}
+    </section>
+</main>
+</body>
+</html>

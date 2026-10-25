@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet Your AI Coach | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="career-coach-shell">
+    <a class="career-coach-back" href="{{ url_for('dashboard') }}">← Dashboard</a>
+    <header class="career-coach-hero">
+        <div class="coach-avatar" aria-hidden="true">✦</div>
+        <div><p class="eyebrow">YOUR PLACEMENT PARTNER</p><h1>Meet your AI Coach</h1><p>Get a practical plan for your goal, practise realistic interview questions, and turn “I should prepare” into a clear next step.</p></div>
+        <div class="coach-availability"><span></span> Ready to help</div>
+    </header>
+
+    <section class="career-coach-layout">
+        <aside class="career-coach-profile">
+            <article class="coach-profile-card">
+                <p class="eyebrow">MAKE IT PERSONAL</p><h2>Your placement goal</h2>
+                <label for="targetRole">Target role</label><input id="targetRole" type="text" maxlength="100" placeholder="e.g. Software Engineer">
+                <label for="targetTimeline">Your timeline</label><select id="targetTimeline"><option>Exploring opportunities</option><option>Interview in the next month</option><option>Preparing over 1–3 months</option><option>Building skills for later</option></select>
+                <label for="coachFocus">Where should we focus?</label><select id="coachFocus"><option>Overall preparation</option><option>Aptitude and reasoning</option><option>Coding interviews</option><option>Behavioral interviews</option><option>Communication confidence</option><option>Resume and project stories</option></select>
+                <p class="coach-profile-note">These details guide your coaching request and stay in this browser form.</p>
+            </article>
+            <article class="coach-promise-card"><p class="eyebrow">HOW YOUR COACH HELPS</p><ul><li>Break preparation into manageable actions</li><li>Ask one interview question at a time</li><li>Give specific feedback you can practise</li><li>Keep the focus on your own experience</li></ul></article>
+        </aside>
+
+        <section class="career-coach-chat" aria-label="AI Coach conversation">
+            <div class="career-chat-header"><div><p class="eyebrow">CAREER COACHING</p><h2>Your conversation</h2></div><span class="career-chat-saved">Saved to your account</span></div>
+            <div class="career-chat-messages" id="coachMessages" aria-live="polite" aria-relevant="additions text">
+                {% if messages %}{% for item in messages %}<article class="career-chat-message {{ 'coach-user-message' if item.role == 'user' else 'coach-ai-message' }}"><div class="career-message-label">{{ 'You' if item.role == 'user' else 'Your AI Coach' }}</div><div class="career-message-body">{{ item.content }}</div></article>{% endfor %}
+                {% else %}<div class="career-chat-empty" id="coachEmpty"><div class="coach-empty-icon" aria-hidden="true">✦</div><h3>What are you working toward?</h3><p>Share your target role or choose a prompt to get started. Your coach will tailor suggestions to your goal.</p></div>{% endif %}
+            </div>
+            <div class="coach-prompt-row" aria-label="Suggested coaching prompts">
+                <button type="button" data-prompt="Build me a realistic 7-day placement preparation plan. Ask one question if you need more information.">Plan my week</button>
+                <button type="button" data-prompt="Start a mock interview for my target role. Ask one realistic question and wait for my answer before giving feedback.">Start a mock interview</button>
+                <button type="button" data-prompt="Help me turn one of my projects into a clear interview story. Show me a simple structure, then ask me to fill it in.">Tell my project story</button>
+                <button type="button" data-prompt="I have 30 minutes today. Give me a focused placement practice session based on my goal.">Plan 30 minutes</button>
+            </div>
+            <form class="career-coach-composer" id="coachForm">
+                <label class="sr-only" for="coachMessage">Message your AI Coach</label>
+                <textarea id="coachMessage" maxlength="6000" rows="3" placeholder="Tell your coach what you need help with..." required></textarea>
+                <div class="career-coach-compose-footer"><span id="coachStatus" role="status">Your coaching conversation is saved privately to your account.</span><button id="coachSend" type="submit">Send <span aria-hidden="true">→</span></button></div>
+            </form>
+        </section>
+    </section>
+    <footer class="career-coach-footer">Your coach offers practice and guidance. Use your own judgment when making career decisions.</footer>
+</main>
+<script>
+(() => {
+    const form = document.getElementById("coachForm");
+    const textarea = document.getElementById("coachMessage");
+    const messages = document.getElementById("coachMessages");
+    const roleInput = document.getElementById("targetRole");
+    const timelineInput = document.getElementById("targetTimeline");
+    const focusInput = document.getElementById("coachFocus");
+    const status = document.getElementById("coachStatus");
+    const sendButton = document.getElementById("coachSend");
+
+    function addMessage(role, content) {
+        const article = document.createElement("article");
+        article.className = `career-chat-message ${role === "user" ? "coach-user-message" : "coach-ai-message"}`;
+        const label = document.createElement("div");
+        label.className = "career-message-label";
+        label.textContent = role === "user" ? "You" : "Your AI Coach";
+        const body = document.createElement("div");
+        body.className = "career-message-body";
+        body.textContent = content;
+        article.append(label, body);
+        messages.appendChild(article);
+        messages.scrollTop = messages.scrollHeight;
+        return article;
+    }
+
+    document.querySelectorAll(".coach-prompt-row button").forEach((button) => button.addEventListener("click", () => {
+        textarea.value = button.dataset.prompt || "";
+        textarea.focus();
+    }));
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = textarea.value.trim();
+        if (!message) return;
+        const userContext = {
+            role: roleInput.value.trim() || "General placement",
+            timeline: timelineInput.value,
+            focus: focusInput.value,
+            message
+        };
+        const empty = document.getElementById("coachEmpty");
+        if (empty) empty.remove();
+        addMessage("user", message);
+        textarea.value = "";
+        textarea.disabled = true;
+        sendButton.disabled = true;
+        sendButton.textContent = "Thinking...";
+        status.textContent = "Your coach is preparing a focused response...";
+        const pending = addMessage("assistant", "Thinking through your next step...");
+        try {
+            const response = await fetch("{{ url_for('ai_coach_respond') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(userContext)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Your coach could not reply just now.");
+            pending.querySelector(".career-message-body").textContent = data.answer;
+            status.textContent = "Response saved. Keep going or try one of the coaching prompts.";
+        } catch (error) {
+            pending.remove();
+            textarea.value = message;
+            status.textContent = error.message || "Your coach is temporarily unavailable.";
+        } finally {
+            textarea.disabled = false;
+            sendButton.disabled = false;
+            sendButton.innerHTML = 'Send <span aria-hidden="true">→</span>';
+            textarea.focus();
+        }
+    });
+})();
+</script>
+</body>
+</html>

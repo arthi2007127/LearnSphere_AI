@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Prep Plan | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="placement-plan-shell">
+    <a class="placement-back" href="{{ url_for('dashboard') }}">← Dashboard</a>
+    <header class="placement-plan-hero">
+        <div>
+            <p class="eyebrow">YOUR PLACEMENT TRAINING</p>
+            <h1>Today's prep plan</h1>
+            <p>{{ day_name }} · {{ plan_date.strftime('%d %B %Y') }} · about {{ total_minutes }} minutes</p>
+            <p class="placement-hero-note">Small, focused practice across four skills keeps your placement preparation moving.</p>
+        </div>
+        <div class="plan-score"><strong>{{ completed_count }}<span>/4</span></strong><small>tasks done today</small></div>
+        <div class="placement-progress" role="progressbar" aria-label="Today's plan progress" aria-valuenow="{{ completed_count }}" aria-valuemin="0" aria-valuemax="4"><span style="width:{{ completed_count * 25 }}%"></span></div>
+    </header>
+
+    <section class="placement-tasks" aria-label="Today's practice tasks">
+        {% for task in tasks %}
+        {% set completed = task.key in completed_keys %}
+        <article class="placement-task {{ 'is-complete' if completed else '' }}">
+            <div class="task-number">{% if completed %}✓{% else %}0{{ loop.index }}{% endif %}</div>
+            <div class="task-content">
+                <div class="task-title-row"><h2>{{ task.title }}</h2><span class="task-time">{{ task.minutes }} min</span></div>
+                <p>{{ task.detail }}</p>
+                <div class="task-actions">
+                    <a class="task-open-link" href="{{ task.href }}">{{ task.action }} ↗</a>
+                    {% if completed %}<span class="task-complete-label">Completed today</span>
+                    {% else %}<form method="post" action="{{ url_for('complete_placement_task', task_key=task.key) }}"><button class="task-done-button" type="submit">Mark complete</button></form>{% endif %}
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </section>
+
+    <section class="placement-plan-footer">
+        <div><p class="eyebrow">KEEP THE MOMENTUM</p><h2>Consistency beats cramming</h2><p>Your focus rotates through placement skills during the week. Your quiz results guide the aptitude task when you have practice history.</p></div>
+        <a href="{{ url_for('dashboard') }}" class="placement-dashboard-link">Back to dashboard →</a>
+    </section>
+</main>
+</body>
+</html>

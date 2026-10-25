@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnSphere AI | Code Lab</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="code-lab-container">
+        <a class="code-lab-back" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+
+        <header class="code-lab-hero">
+            <p class="eyebrow">PRACTICE · RUN · IMPROVE</p>
+            <h1>💻 AI Code Lab</h1>
+            <p>Generate a Python challenge, try your solution in the editor, and compare it with a sample case.</p>
+        </header>
+
+        <section class="code-lab-card">
+            <h2>Generate a Challenge</h2>
+
+            <form method="POST" class="code-lab-form">
+                <div>
+                    <label for="language">Programming Language</label>
+                    <select name="language" id="language">
+                        <option value="Python" selected>Python</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="difficulty">Difficulty</label>
+                    <select name="difficulty" id="difficulty">
+                        <option {% if difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                        <option {% if difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+                        <option {% if difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="topic">Topic</label>
+                    <select name="topic" id="topic">
+                        <option {% if topic == 'Basics' %}selected{% endif %}>Basics</option>
+                        <option {% if topic == 'Arrays' %}selected{% endif %}>Arrays</option>
+                        <option {% if topic == 'Strings' %}selected{% endif %}>Strings</option>
+                        <option {% if topic == 'Algorithms' %}selected{% endif %}>Algorithms</option>
+                    </select>
+                </div>
+
+                <div class="generate-action">
+                    <button type="submit">✨ Generate Challenge</button>
+                </div>
+            </form>
+        </section>
+
+        {% if error_message %}
+            <section class="code-lab-card code-lab-error" role="alert">
+                <strong>Challenge generation failed</strong>
+                <p>{{ error_message }}</p>
+            </section>
+        {% endif %}
+
+        {% if challenge %}
+            <section class="code-lab-card">
+                <p class="eyebrow">{{ language }} · {{ difficulty }} · {{ topic }}</p>
+                <h2>{{ challenge.title }}</h2>
+                <p>{{ challenge.description }}</p>
+
+                <h3>Input Format</h3>
+                <p>{{ challenge.input_format }}</p>
+
+                <h3>Output Format</h3>
+                <p>{{ challenge.output_format }}</p>
+
+                <h3>Examples</h3>
+                {% for example in challenge.examples %}
+                    <div class="challenge-example">
+                        <strong>Input</strong>
+                        <pre>{{ example.input }}</pre>
+                        <strong>Output</strong>
+                        <pre>{{ example.output }}</pre>
+                        <button class="sample-load" type="button" data-input="{{ example.input }}" data-output="{{ example.output }}">Load this sample</button>
+                    </div>
+                {% endfor %}
+
+                <h3>Constraints</h3>
+                <ul>
+                    {% for item in challenge.constraints %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+
+                <h3>Hints</h3>
+                <ol>
+                    {% for hint in challenge.hints %}
+                        <li>{{ hint }}</li>
+                    {% endfor %}
+                </ol>
+
+                <details>
+                    <summary>View Reference Solution</summary>
+                    <pre class="challenge-example">{{ challenge.solution }}</pre>
+                    <h3>Explanation</h3>
+                    <p>{{ challenge.explanation }}</p>
+                </details>
+
+                <p><small>
+                    Run your Python solution below. Sample checking compares the program output with the expected output you provide.
+                </small></p>
+            </section>
+        {% endif %}
+    <section class="code-editor-section">
+    <div class="editor-heading">
+        <div><p class="eyebrow">PYTHON WORKSPACE</p><h2>Write and run your solution</h2></div>
+        <span class="python-badge">Python 3</span>
+    </div>
+    <p class="editor-intro">Use the sample input, edit the starter code, then press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run.</p>
+    <div class="test-case-grid">
+        <div><label for="testInput">Test input</label><textarea id="testInput" rows="4" placeholder="Enter input for your program...">{{ challenge.examples[0].input if challenge and challenge.examples else '' }}</textarea></div>
+        <div><label for="expectedOutput">Expected output</label><textarea id="expectedOutput" rows="4" placeholder="Enter the exact expected output...">{{ challenge.examples[0].output if challenge and challenge.examples else 'Hello, LearnSphere AI!' }}</textarea></div>
+    </div>
+    <label class="editor-label" for="pythonCode">Your code</label>
+    <textarea id="pythonCode" class="starter-code" rows="15" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Write your Python code here...">{{ challenge.starter_code if challenge else 'print("Hello, LearnSphere AI!")' }}</textarea>
+    <div class="editor-actions">
+        <button id="runCodeButton" class="run-code-button" type="button">▶ Run Code</button>
+        <button id="resetCodeButton" class="editor-secondary" type="button">Reset starter code</button>
+        <button id="clearOutputButton" class="editor-secondary" type="button">Clear output</button>
+    </div>
+    <div id="submissionResult" class="submission-result" role="status" aria-live="polite">Run your code to compare it with the expected output.</div>
+    <div class="output-panel"><h3>Program output</h3><pre id="codeOutput">Your output will appear here.</pre></div>
+</section>
+</main>
+
+
+<script>
+(() => {
+    const editor = document.getElementById("pythonCode");
+    const input = document.getElementById("testInput");
+    const expected = document.getElementById("expectedOutput");
+    const output = document.getElementById("codeOutput");
+    const resultBox = document.getElementById("submissionResult");
+    const runButton = document.getElementById("runCodeButton");
+    const starterCode = editor.value;
+
+    document.querySelectorAll(".sample-load").forEach((button) => {
+        button.addEventListener("click", () => {
+            input.value = button.dataset.input || "";
+            expected.value = button.dataset.output || "";
+            input.focus();
+            resultBox.textContent = "Sample input and expected output loaded.";
+            resultBox.className = "submission-result";
+        });
+    });
+
+    document.getElementById("resetCodeButton").addEventListener("click", () => {
+        editor.value = starterCode;
+        editor.focus();
+        resultBox.textContent = "Starter code restored.";
+        resultBox.className = "submission-result";
+    });
+
+    document.getElementById("clearOutputButton").addEventListener("click", () => {
+        output.textContent = "Your output will appear here.";
+        resultBox.textContent = "Output cleared.";
+        resultBox.className = "submission-result";
+    });
+
+    async function runCode() {
+        runButton.disabled = true;
+        runButton.textContent = "Running...";
+        output.textContent = "Running your code...";
+        resultBox.textContent = "Your Python program is running.";
+        resultBox.className = "submission-result is-running";
+        try {
+            const response = await fetch("{{ url_for('run_code') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({code: editor.value, input: input.value})
+            });
+            const data = await response.json();
+            const stdout = data.output || "";
+            output.textContent = stdout || (data.error ? "No standard output." : "Program completed with no output.");
+            if (!response.ok || data.error || data.returncode !== 0) {
+                output.textContent += data.error ? `\n${data.error}` : "";
+                resultBox.textContent = `Run failed: ${data.error || "Your program exited with an error."}`;
+                resultBox.className = "submission-result is-error";
+                return;
+            }
+            if (data.truncated) output.textContent += "\n[Output was shortened.]";
+            if (stdout.trim() === expected.value.trim()) {
+                resultBox.textContent = "✓ Accepted — output matches the expected result.";
+                resultBox.className = "submission-result is-success";
+                fetch("{{ url_for('coding_challenge_completed') }}", {method: "POST"})
+                    .catch((error) => console.warn("Streak update failed:", error));
+            } else {
+                resultBox.textContent = "Output differs from the expected result. Check spacing, input handling, and your logic.";
+                resultBox.className = "submission-result is-error";
+            }
+        } catch (error) {
+            output.textContent = "Unable to connect to the runner. Check that the app is running, then try again.";
+            resultBox.textContent = error.message || "Unable to run code.";
+            resultBox.className = "submission-result is-error";
+        } finally {
+            runButton.disabled = false;
+            runButton.textContent = "▶ Run Code";
+        }
+    }
+
+    runButton.addEventListener("click", runCode);
+    editor.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+            event.preventDefault();
+            runCode();
+        }
+    });
+})();
+</script>
+
+</body>
+</html>

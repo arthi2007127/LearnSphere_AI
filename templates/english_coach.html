@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1020">
+    <title>English Coach | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="english-coach-page">
+<main class="english-coach-shell">
+    <a class="coach-back-link" href="{{ url_for('dashboard') }}">← Back to dashboard</a>
+    <header class="coach-hero">
+        <div class="coach-hero-copy">
+            <p class="eyebrow">PRACTISE A LITTLE. IMPROVE EVERY DAY.</p>
+            <h1>English Coach</h1>
+            <p>Build confidence in conversation, grammar, vocabulary, and interviews with clear, supportive AI feedback.</p>
+        </div>
+        <div class="coach-hero-mark" aria-hidden="true">Aa</div>
+    </header>
+
+    <div class="coach-layout">
+        <section class="coach-main-column">
+            <section class="coach-card practice-card" aria-labelledby="practiceHeading">
+                <div class="coach-section-heading">
+                    <div><p class="eyebrow">YOUR PRACTICE SPACE</p><h2 id="practiceHeading">What would you like to practise?</h2></div>
+                    <span class="coach-secure-label">Private practice</span>
+                </div>
+
+                <div class="coach-settings-grid">
+                    <div><label for="mode">Practice focus</label><select id="mode"><option value="conversation">Daily conversation</option><option value="grammar">Grammar and writing</option><option value="interview">Interview answers</option><option value="vocabulary">Vocabulary building</option></select></div>
+                    <div><label for="level">Your comfort level</label><select id="level"><option value="adaptive">Choose for me</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div>
+                </div>
+
+                <div class="coach-prompt-suggestions" aria-label="Suggested prompts">
+                    <span>Try:</span>
+                    <button type="button" class="prompt-chip" data-mode="conversation" data-prompt="Tell me about your day in a few sentences.">Talk about your day</button>
+                    <button type="button" class="prompt-chip" data-mode="interview" data-prompt="Tell me about yourself and the skills you would bring to a role.">Introduce yourself</button>
+                    <button type="button" class="prompt-chip" data-mode="vocabulary" data-prompt="Teach me five useful words for talking about my studies or work.">Learn useful words</button>
+                </div>
+
+                <label for="message" class="coach-input-label">Write or speak your answer</label>
+                <textarea id="message" maxlength="3000" rows="7" placeholder="Write a few sentences in English, or use the microphone to speak..." aria-describedby="writingTip"></textarea>
+                <div class="coach-input-meta"><span id="writingTip">Tip: a real example gives your coach more to work with.</span><span id="characterCount">0 / 3000</span></div>
+
+                <div class="coach-control-row">
+                    <div class="coach-control-group">
+                        <button id="micButton" class="coach-button coach-button-secondary" type="button"><span aria-hidden="true">🎙</span> Start speaking</button>
+                        <label class="accent-select-label" for="accent">Speech accent</label>
+                        <select id="accent" class="accent-select"><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option><option value="en-AU">English (Australia)</option></select>
+                    </div>
+                    <button id="coachButton" class="coach-button coach-button-primary" type="button">Get AI feedback <span aria-hidden="true">→</span></button>
+                </div>
+                <p id="voiceStatus" class="coach-status" role="status" aria-live="polite">Ready when you are. Your feedback will appear below.</p>
+            </section>
+
+            <section class="coach-card feedback-card" aria-labelledby="feedbackHeading">
+                <div class="coach-section-heading">
+                    <div><p class="eyebrow">PERSONALIZED GUIDANCE</p><h2 id="feedbackHeading">Your feedback</h2></div>
+                    <div class="feedback-actions"><button id="speakButton" class="icon-action" type="button" disabled>🔊 Listen</button><button id="stopSpeakButton" class="icon-action" type="button" disabled>■ Stop</button></div>
+                </div>
+                <div id="feedback" class="feedback-content" aria-live="polite"><div class="feedback-empty"><span aria-hidden="true">✦</span><p>Submit a sentence or spoken answer to get supportive feedback and practical next steps.</p></div></div>
+                <div class="word-analysis-tools">
+                    <div><h3>Word-by-word learning</h3><p>Explore meaning, example usage, and a pronunciation tip for useful words.</p></div>
+                    <button type="button" id="wordFeedbackButton" class="coach-button coach-button-secondary">Analyse my words</button>
+                </div>
+                <p id="wordFeedbackStatus" class="coach-status" role="status" aria-live="polite"></p>
+                <div id="wordFeedbackResults" class="word-analysis-results" hidden>
+                    <div class="corrected-sentence-panel"><h4>Polished version</h4><p id="correctedSentence"></p></div>
+                    <div class="word-analysis-notes"><div><h4>Grammar note</h4><p id="grammarFeedback"></p></div><div><h4>Practice tip</h4><p id="overallTip"></p></div></div>
+                    <h4 class="word-list-heading">Words to learn</h4>
+                    <div id="wordFeedbackList" class="word-feedback-grid"></div>
+                </div>
+            </section>
+        </section>
+
+        <aside class="coach-sidebar">
+            <section class="coach-card sidebar-card">
+                <p class="eyebrow">A QUICK ROUTINE</p><h2>Make practice count</h2>
+                <ol class="practice-routine"><li><span>1</span><div><strong>Choose a focus</strong><p>Pick one skill for this session.</p></div></li><li><span>2</span><div><strong>Say it your way</strong><p>Try a few sentences without overthinking.</p></div></li><li><span>3</span><div><strong>Use one tip</strong><p>Make one small improvement and try again.</p></div></li></ol>
+            </section>
+            <section class="coach-card sidebar-card recent-card">
+                <div class="recent-heading"><div><p class="eyebrow">ON THIS DEVICE</p><h2>Recent practice</h2></div><button id="clearHistoryButton" class="text-action" type="button" hidden>Clear</button></div>
+                <p class="recent-caption">Your last five drafts are saved locally in this browser.</p>
+                <div id="recentPracticeList" class="recent-practice-list"><p class="recent-empty">Your recent practice will show up here.</p></div>
+            </section>
+            <section class="coach-card pronunciation-card">
+                <p class="eyebrow">SPEAK WITH CONFIDENCE</p><h2>Pronunciation practice</h2>
+                <p>Listen to a word at a comfortable speed, then practise saying it aloud.</p>
+                <label for="practiceWord">Word to practise</label>
+                <div class="pronunciation-controls"><input type="text" id="practiceWord" maxlength="100" placeholder="Choose a word from your answer"><button type="button" id="chooseWordButton" title="Choose from your answer">Pick</button></div>
+                <button type="button" id="pronounceWordButton" class="coach-button coach-button-secondary pronounce-button">🔊 Hear the word</button>
+                <p id="pronunciationStatus" class="coach-status" role="status" aria-live="polite">Enter a word or pick one from your answer.</p>
+            </section>
+        </aside>
+    </div>
+</main>
+
+<script>
+(() => {
+    const messageBox = document.getElementById("message");
+    const feedbackBox = document.getElementById("feedback");
+    const voiceStatus = document.getElementById("voiceStatus");
+    const modeSelect = document.getElementById("mode");
+    const levelSelect = document.getElementById("level");
+    const accentSelect = document.getElementById("accent");
+    const micButton = document.getElementById("micButton");
+    const coachButton = document.getElementById("coachButton");
+    const speakButton = document.getElementById("speakButton");
+    const stopSpeakButton = document.getElementById("stopSpeakButton");
+    const characterCount = document.getElementById("characterCount");
+    const historyKey = "learnsphere-english-practice-v1";
+    let recognition = null;
+    let latestFeedback = "";
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function updateCharacterCount() {
+        characterCount.textContent = `${messageBox.value.length} / 3000`;
+    }
+    messageBox.addEventListener("input", updateCharacterCount);
+
+    document.querySelectorAll(".prompt-chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+            modeSelect.value = chip.dataset.mode;
+            messageBox.value = chip.dataset.prompt;
+            updateCharacterCount();
+            messageBox.focus();
+            messageBox.setSelectionRange(messageBox.value.length, messageBox.value.length);
+        });
+    });
+
+    if (SpeechRecognitionAPI) {
+        recognition = new SpeechRecognitionAPI();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.onstart = () => {
+            voiceStatus.textContent = "Listening... speak naturally. Select Start speaking again when you are done.";
+            micButton.textContent = "Listening...";
+            micButton.classList.add("is-listening");
+        };
+        recognition.onresult = (event) => {
+            let transcript = "";
+            for (let index = 0; index < event.results.length; index++) {
+                transcript += event.results[index][0].transcript;
+            }
+            messageBox.value = transcript.slice(0, 3000);
+            updateCharacterCount();
+        };
+        recognition.onerror = (event) => {
+            voiceStatus.textContent = `Microphone issue: ${event.error}. Check browser microphone permission or type your answer.`;
+        };
+        recognition.onend = () => {
+            micButton.textContent = "🎙 Start speaking";
+            micButton.classList.remove("is-listening");
+        };
+        micButton.addEventListener("click", () => {
+            recognition.lang = accentSelect.value;
+            try { recognition.start(); }
+            catch (_) { voiceStatus.textContent = "Please wait a moment before starting the microphone again."; }
+        });
+    } else {
+        micButton.disabled = true;
+        micButton.title = "Speech recognition is not available in this browser.";
+        voiceStatus.textContent = "Speech recognition is not available in this browser. You can still type your answer.";
+    }
+
+    function readHistory() {
+        try {
+            const value = JSON.parse(localStorage.getItem(historyKey) || "[]");
+            return Array.isArray(value) ? value : [];
+        } catch (_) { return []; }
+    }
+
+    function renderHistory() {
+        const list = document.getElementById("recentPracticeList");
+        const clearButton = document.getElementById("clearHistoryButton");
+        const history = readHistory();
+        list.replaceChildren();
+        clearButton.hidden = history.length === 0;
+        if (!history.length) {
+            const empty = document.createElement("p");
+            empty.className = "recent-empty";
+            empty.textContent = "Your recent practice will show up here.";
+            list.appendChild(empty);
+            return;
+        }
+        history.forEach((item) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "recent-practice-item";
+            const mode = document.createElement("span");
+            mode.className = "recent-mode";
+            mode.textContent = item.mode;
+            const excerpt = document.createElement("span");
+            excerpt.className = "recent-excerpt";
+            excerpt.textContent = item.text;
+            button.append(mode, excerpt);
+            button.addEventListener("click", () => {
+                messageBox.value = item.text;
+                modeSelect.value = item.modeValue;
+                feedbackBox.textContent = item.feedback;
+                latestFeedback = item.feedback;
+                speakButton.disabled = false;
+                stopSpeakButton.disabled = false;
+                updateCharacterCount();
+                window.scrollTo({top: 0, behavior: "smooth"});
+            });
+            list.appendChild(button);
+        });
+    }
+    document.getElementById("clearHistoryButton").addEventListener("click", () => {
+        localStorage.removeItem(historyKey);
+        renderHistory();
+    });
+
+    coachButton.addEventListener("click", async () => {
+        const message = messageBox.value.trim();
+        if (!message) { voiceStatus.textContent = "Write or speak a few sentences first."; messageBox.focus(); return; }
+        coachButton.disabled = true;
+        coachButton.textContent = "Getting feedback...";
+        feedbackBox.textContent = "Your coach is reviewing your English...";
+        voiceStatus.textContent = "Sending your answer to the AI coach...";
+        try {
+            const response = await fetch("{{ url_for('english_coach') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message, mode: modeSelect.value, level: levelSelect.value})
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Unable to get feedback.");
+            latestFeedback = data.feedback;
+            feedbackBox.textContent = latestFeedback;
+            speakButton.disabled = false;
+            stopSpeakButton.disabled = false;
+            const entries = readHistory();
+            entries.unshift({mode: modeSelect.options[modeSelect.selectedIndex].text, modeValue: modeSelect.value, text: message, feedback: latestFeedback, at: Date.now()});
+            localStorage.setItem(historyKey, JSON.stringify(entries.slice(0, 5)));
+            renderHistory();
+            voiceStatus.textContent = "Feedback ready. Try one suggestion and practise your answer again.";
+        } catch (error) {
+            feedbackBox.textContent = "We couldn't get feedback this time.";
+            voiceStatus.textContent = error.message || "Unable to connect to the AI coach.";
+        } finally {
+            coachButton.disabled = false;
+            coachButton.innerHTML = 'Get AI feedback <span aria-hidden="true">→</span>';
+        }
+    });
+
+    speakButton.addEventListener("click", () => {
+        if (!latestFeedback || !("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(latestFeedback);
+        speech.lang = accentSelect.value;
+        speech.rate = 0.92;
+        window.speechSynthesis.speak(speech);
+    });
+    stopSpeakButton.addEventListener("click", () => window.speechSynthesis?.cancel());
+
+    const practiceWord = document.getElementById("practiceWord");
+    const pronunciationStatus = document.getElementById("pronunciationStatus");
+    document.getElementById("chooseWordButton").addEventListener("click", () => {
+        const words = messageBox.value.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g) || [];
+        if (!words.length) { pronunciationStatus.textContent = "Write or speak a sentence first, then choose a word."; return; }
+        const selection = window.prompt("Enter the number of the word to practise:\n" + words.map((word, i) => `${i + 1}. ${word}`).join("\n"));
+        if (selection === null) return;
+        const index = Number(selection);
+        if (!Number.isInteger(index) || index < 1 || index > words.length) { pronunciationStatus.textContent = "Enter a number from the word list."; return; }
+        practiceWord.value = words[index - 1];
+        pronunciationStatus.textContent = `Selected “${practiceWord.value}”. Listen and repeat at your own pace.`;
+    });
+    document.getElementById("pronounceWordButton").addEventListener("click", () => {
+        const word = practiceWord.value.trim();
+        if (!word) { pronunciationStatus.textContent = "Enter a word or pick one from your answer."; return; }
+        if (!("speechSynthesis" in window)) { pronunciationStatus.textContent = "Speech playback is not supported in this browser."; return; }
+        window.speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(word);
+        speech.lang = accentSelect.value;
+        speech.rate = 0.72;
+        speech.onstart = () => { pronunciationStatus.textContent = `Listening to “${word}”...`; };
+        speech.onend = () => { pronunciationStatus.textContent = "Now repeat the word aloud. You can listen again any time."; };
+        window.speechSynthesis.speak(speech);
+    });
+
+    document.getElementById("wordFeedbackButton").addEventListener("click", async (event) => {
+        const sentence = messageBox.value.trim();
+        const button = event.currentTarget;
+        const status = document.getElementById("wordFeedbackStatus");
+        const results = document.getElementById("wordFeedbackResults");
+        if (!sentence) { status.textContent = "Write or speak a sentence first."; return; }
+        button.disabled = true;
+        status.textContent = "Checking useful words and sentence structure...";
+        results.hidden = true;
+        try {
+            const response = await fetch("{{ url_for('pronunciation_feedback') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({sentence, level: levelSelect.value})
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Unable to analyse this sentence.");
+            document.getElementById("correctedSentence").textContent = data.corrected_sentence || sentence;
+            document.getElementById("grammarFeedback").textContent = data.grammar_feedback || "No additional grammar feedback.";
+            document.getElementById("overallTip").textContent = data.overall_tip || "Keep practising.";
+            const wordList = document.getElementById("wordFeedbackList");
+            wordList.replaceChildren();
+            (data.words || []).forEach((item) => {
+                const card = document.createElement("article");
+                card.className = "word-feedback-card";
+                const title = document.createElement("h5");
+                title.textContent = item.word || "Word";
+                card.appendChild(title);
+                [["Meaning", item.meaning], ["Pronunciation tip", item.pronunciation_tip], ["Example", item.example]].forEach(([label, value]) => {
+                    const row = document.createElement("p");
+                    const strong = document.createElement("strong");
+                    strong.textContent = `${label}: `;
+                    row.append(strong, document.createTextNode(value || "Not provided"));
+                    card.appendChild(row);
+                });
+                const play = document.createElement("button");
+                play.type = "button";
+                play.className = "word-play-button";
+                play.textContent = "🔊 Hear word";
+                play.addEventListener("click", () => {
+                    if (!("speechSynthesis" in window)) { status.textContent = "Speech playback is not supported in this browser."; return; }
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(item.word || "");
+                    utterance.lang = accentSelect.value;
+                    utterance.rate = 0.72;
+                    window.speechSynthesis.speak(utterance);
+                });
+                card.appendChild(play);
+                wordList.appendChild(card);
+            });
+            results.hidden = false;
+            status.textContent = "Word and sentence review is ready.";
+        } catch (error) {
+            status.textContent = error.message || "Something went wrong. Please try again.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    renderHistory();
+    updateCharacterCount();
+})();
+</script>
+</body>
+</html>

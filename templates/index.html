@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LearnSphere AI | Smart Learning</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <header class="navbar">
+        <a href="/" class="logo">LearnSphere <span>AI</span></a>
+
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#learning">Learning</a>
+            <a href="#voice">AI Voice</a>
+        </nav>
+
+        <button class="nav-button"
+                onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+            Explore
+        </button>
+    </header>
+
+    <main>
+        <section class="hero">
+
+            <div class="hero-content">
+                <div class="badge">✦ Your Personal AI Learning Companion</div>
+
+                <h1>
+                    Learn Smarter.<br>
+                    <span>Speak Confidently.</span><br>
+                    Achieve More.
+                </h1>
+
+                <p>
+                    Prepare for placements, master coding, improve your English,
+                    and build your future with your personal AI learning assistant.
+                </p>
+
+                <div class="hero-buttons">
+                   <a href="{{ url_for('register') }}" class="primary-button">
+    Start Learning ↗
+</a>
+
+                    <button class="secondary-button"
+                            onclick="document.getElementById('voice').scrollIntoView({behavior:'smooth'})">
+                        🎙 Meet Your AI Coach
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div>
+                        <strong>100</strong>
+                        <small>Learning Levels</small>
+                    </div>
+
+                    <div>
+                        <strong>AI</strong>
+                        <small>Personal Guidance</small>
+                    </div>
+
+                    <div>
+                        <strong>24/7</strong>
+                        <small>Practice Anytime</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <div class="card-top">
+                    <span class="online-dot"></span>
+                    Your Learning Journey
+                    <span class="sparkle">✦</span>
+                </div>
+
+                <div class="orb">✧</div>
+
+                <h2>Your potential is limitless.</h2>
+                <p>Every question takes you one step closer to your goal.</p>
+
+                <div class="progress-info">
+                    <span>Today's progress</span>
+                    <strong>25%</strong>
+                </div>
+
+                <div class="progress-track">
+                    <div class="progress-fill"></div>
+                </div>
+
+                <div class="mini-stats">
+                    <div>⚡ <strong>+120 XP</strong></div>
+                    <div>🔥 <strong>3-day streak</strong></div>
+                </div>
+
+                <small class="demo-note">
+                    Sample progress — your real progress will be tracked later.
+                </small>
+            </div>
+
+        </section>
+
+        <section class="section" id="features">
+            <div class="section-heading">
+                <span class="eyebrow">EXPLORE YOUR POTENTIAL</span>
+                <h2>Everything you need to <span>grow.</span></h2>
+                <p>One platform. Multiple skills. A smarter way to learn.</p>
+            </div>
+
+            <div class="feature-grid">
+
+                <article class="feature-card purple">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Aptitude Arena</h3>
+                    <p>Practise logical reasoning, mathematics, and placement aptitude.</p>
+                    <span>Practice & improve ↗</span>
+                </article>
+
+                <article class="feature-card blue">
+                    <div class="feature-icon">💻</div>
+                    <h3>Coding Lab</h3>
+                    <p>Develop programming skills through coding challenges and explanations.</p>
+                    <span>Build your skills ↗</span>
+                </article>
+
+                <article class="feature-card pink" id="learning">
+                    <div class="feature-icon">📚</div>
+                    <h3>English Coach</h3>
+                    <p>Learn grammar, vocabulary, pronunciation, and confident communication.</p>
+                    <span>Improve your English ↗</span>
+                </article>
+
+                <article class="feature-card green">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Interview Hub</h3>
+                    <p>Prepare for technical interviews, HR questions, and mock tests.</p>
+                    <span>Prepare for placements ↗</span>
+                </article>
+
+                <article class="feature-card orange">
+                    <div class="feature-icon">🎮</div>
+                    <h3>100-Level Game</h3>
+                    <p>Earn XP, unlock challenges, and improve through interactive learning.</p>
+                    <span>Your adventure awaits ↗</span>
+                </article>
+
+                <article class="feature-card cyan" id="voice">
+                    <div class="feature-icon">🎙️</div>
+                    <h3>AI Voice Assistant</h3>
+                    <p>Practise spoken English and ask your learning coach questions.</p>
+                    <span>Coming in a later stage ↗</span>
+                </article>
+
+            </div>
+        </section>
+
+        <footer>
+            <a href="/" class="logo">LearnSphere <span>AI</span></a>
+            <p>Your journey to knowledge starts here.</p>
+            <small>© 2026 LearnSphere AI · Built for learning and growth.</small>
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create account | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+    <nav class="auth-nav"><a href="{{ url_for('home') }}" class="logo">LearnSphere <span>AI</span></a><a href="{{ url_for('home') }}" class="auth-home-link">Home</a></nav>
+    <main class="auth-layout">
+        <aside class="auth-aside"><p class="eyebrow">YOUR FUTURE, IN PRACTICE</p><h1>Make your preparation count.</h1><p>Create an account to keep your placement practice and learning progress together.</p><div class="auth-aside-orbit"><span>Skills</span><span>Confidence</span><span>Progress</span></div></aside>
+        <section class="auth-card auth-register-card">
+            <div class="auth-card-mark" aria-hidden="true">✦</div><p class="eyebrow">GET STARTED</p><h2 class="auth-title">Create your account</h2><p class="auth-description">A few details and you’re ready to start.</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="auth-alert {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+            <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+                <label for="name">Full name</label><input id="name" name="name" type="text" maxlength="100" autocomplete="name" placeholder="Your name" required>
+                <label for="email">Email address</label><input id="email" name="email" type="email" maxlength="150" autocomplete="email" placeholder="you@example.com" required>
+                <label for="password">Create a password</label>
+                <div class="auth-password-wrap"><input id="password" name="password" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="password-toggle" data-target="password" aria-label="Show password">Show</button></div>
+                <div class="password-strength" aria-hidden="true"><span id="passwordStrengthBar"></span></div><small id="passwordStrengthText" class="password-help">Use at least 8 characters.</small>
+                <label for="confirm_password">Confirm password</label>
+                <div class="auth-password-wrap"><input id="confirm_password" name="confirm_password" type="password" minlength="8" autocomplete="new-password" placeholder="Enter it again" required><button type="button" class="password-toggle" data-target="confirm_password" aria-label="Show password">Show</button></div>
+                <small id="passwordMatch" class="password-help" aria-live="polite"></small>
+                <button type="submit" class="auth-submit">Create account <span aria-hidden="true">→</span></button>
+            </form>
+            <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p><p class="auth-privacy-note">Your account keeps your practice and progress together.</p>
+        </section>
+    </main>
+    <script>
+    document.querySelectorAll('.password-toggle').forEach(button => button.addEventListener('click', () => { const field = document.getElementById(button.dataset.target); const visible = field.type === 'password'; field.type = visible ? 'text' : 'password'; button.textContent = visible ? 'Hide' : 'Show'; button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password'); }));
+    const password = document.getElementById('password'); const confirmPassword = document.getElementById('confirm_password');
+    password.addEventListener('input', () => { const value = password.value; const score = Number(value.length >= 8) + Number(/[A-Z]/.test(value) && /[a-z]/.test(value)) + Number(/\d/.test(value)) + Number(/[^A-Za-z0-9]/.test(value)); const bar = document.getElementById('passwordStrengthBar'); bar.style.width = `${Math.min(score, 4) * 25}%`; bar.dataset.strength = score <= 1 ? 'low' : score <= 2 ? 'medium' : 'high'; document.getElementById('passwordStrengthText').textContent = value.length < 8 ? 'Use at least 8 characters.' : score <= 2 ? 'Add a number or symbol to strengthen it.' : 'Strong password.'; });
+    confirmPassword.addEventListener('input', () => { const match = document.getElementById('passwordMatch'); if (!confirmPassword.value) { match.textContent = ''; return; } match.textContent = confirmPassword.value === password.value ? 'Passwords match.' : 'Passwords do not match yet.'; match.dataset.match = confirmPassword.value === password.value ? 'yes' : 'no'; });
+    </script>
+</body></html>

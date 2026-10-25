@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level {{ challenge.level }} | LearnSphere AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="level-wrap">
+    <nav class="level-nav">
+        <a href="{{ url_for('challenges') }}">← All levels</a>
+        <a href="{{ url_for('interview_hub') }}">Interview Hub</a>
+    </nav>
+    <section class="level-card">
+        <p class="eyebrow">LEVEL {{ challenge.level }} · {{ challenge.topic }}</p>
+        <h1>{{ challenge.topic }}</h1>
+        <p class="level-prompt">{{ challenge.prompt }}</p>
+        <p><strong>Focus:</strong> {{ challenge.focus }}</p>
+        {% if completed %}
+        <p class="level-complete">✓ This level is complete. Your response was saved.</p>
+        <a class="level-button" href="{{ url_for('challenges') }}">Back to your path</a>
+        {% else %}
+        <form class="level-form" method="post">
+            <label for="response"><strong>Write your answer</strong></label>
+            <textarea id="response" name="response" minlength="20" required placeholder="Draft your answer here. A short, specific example is a great start."></textarea>
+            {% if error_message %}<p class="level-error" role="alert">{{ error_message }}</p>{% endif %}
+            <button type="submit">Save answer & complete level →</button>
+        </form>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>
